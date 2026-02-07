@@ -1,0 +1,100 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: "Segoe UI", system-ui, sans-serif; background: #0c1117; color: #e6edf3; }
+
+/* SIDEBAR */
+.sidebar { position: fixed; left: 0; top: 0; height: 100vh; width: 220px; background: #0f1623; border-right: 1px solid #2a3446; transition: width 0.25s; overflow: hidden; z-index: 100; }
+.sidebar.collapsed { width: 60px; }
+.sidebar .logo { font-size: 1.8rem; padding: 20px; text-align: center; }
+.nav { display: flex; align-items: center; gap: 12px; padding: 14px 20px; color: #8b949e; text-decoration: none; font-weight: 500; }
+.nav:hover, .nav.active { background: #1f6feb20; color: #58a6ff; }
+.nav span { white-space: nowrap; }
+.sidebar.collapsed span { display: none; }
+
+/* MAIN CONTENT */
+.main { margin-left: 220px; padding: 24px; transition: margin-left 0.25s; }
+.sidebar.collapsed + .main { margin-left: 60px; }
+.topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+.status { padding: 6px 14px; border-radius: 4px; font-weight: 600; }
+.status.ok { background: #2da44e; }
+.status.crit { background: #cf222e; }
+
+/* GRID SYSTEM */
+.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.card { background: #1a2233; border: 1px solid #2a3446; border-radius: 8px; padding: 18px; }
+.card h2 { font-size: 1rem; margin-bottom: 12px; border-bottom: 1px solid #2a3446; padding-bottom: 6px; }
+.wide { grid-column: span 2; }
+
+/* VIDEO PLAYER & LOCKDOWN (THE FIX) */
+.video-wrapper {
+  position: relative; /* TRAPS the red overlay */
+  width: 100%;
+  border-radius: 6px;
+  overflow: hidden;
+  background: black;
+  aspect-ratio: 16/9;
+}
+video { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.lockdown {
+  position: absolute;
+  inset: 0;
+  background: rgba(207, 34, 46, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  backdrop-filter: blur(5px);
+}
+.lockdown-text { font-size: 2rem; font-weight: bold; color: white; border: 4px solid white; padding: 10px 20px; }
+.hidden { display: none !important; }
+
+/* CONTROLS */
+.upload { background: #238636; padding: 4px 12px; border-radius: 4px; cursor: pointer; color: white; font-size: 0.85rem; font-weight: 600; margin-left: 10px; }
+.upload:hover { background: #2ea043; }
+
+/* METRICS */
+.fuel { width: 100%; height: 22px; background: #0c1117; border-radius: 4px; overflow: hidden; margin-top: 5px; }
+#fuelFill { height: 100%; width: 100%; background: #2da44e; transition: width 0.5s; }
+/* --- PRINT MODE SETTINGS (For PDF Generation) --- */
+@media print {
+  /* Hide navigation and buttons */
+  .sidebar, .video-controls, button, .topbar button {
+    display: none !important;
+  }
+
+  /* Reset layout for paper */
+  .main {
+    margin-left: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Make it look like a document */
+  body {
+    background: white;
+    color: black;
+  }
+  
+  .card {
+    background: white;
+    border: 1px solid #ddd;
+    box-shadow: none;
+    color: black;
+  }
+
+  table {
+    color: black;
+    width: 100%;
+    border: 1px solid #ddd;
+  }
+  
+  th, td {
+    border-bottom: 1px solid #ddd;
+    color: black;
+  }
+  
+  /* Force background colors for severity badges */
+  .status {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}

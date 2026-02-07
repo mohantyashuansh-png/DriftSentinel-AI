@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Drift Sentinel | Deep Analytics</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<div id="sidebar" class="sidebar collapsed">
+  <div class="logo">🛡️</div>
+  <a href="index.html" class="nav">🏠 <span>Overview</span></a>
+  <a href="drift.html" class="nav active">📊 <span>Deep Analytics</span></a>
+  <a href="explainability.html" class="nav">🔍 <span>Explainability</span></a>
+  <a href="blackbox.html" class="nav">📜 <span>Black Box</span></a>
+  <a href="supervisor.html" class="nav">⚖️ <span>Governance</span></a>
+</div>
+
+<div class="main">
+  <header class="topbar">
+    <h1>Deep Analytics & Attribution</h1>
+  </header>
+
+  <div class="grid">
+    
+    <section class="card wide">
+      <h2>Cumulative Feature Impact</h2>
+      <p class="muted" style="color:#8b949e; font-size:0.9rem; margin-bottom:15px;">
+        Which input features are contributing most to the system drift over the current session?
+      </p>
+      <div style="height: 250px;">
+        <canvas id="impactChart"></canvas>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Model Confidence Distribution</h2>
+      <div style="height: 250px; display:flex; align-items:center; justify-content:center;">
+        <canvas id="confChart"></canvas>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<script src="sidebar.js"></script>
+<script src="drift.js"></script>
+</body>
+</html>

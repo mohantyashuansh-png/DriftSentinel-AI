@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Drift Sentinel | Black Box</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div id="sidebar" class="sidebar collapsed">
+  <div class="logo">🛡️</div>
+  <a href="index.html" class="nav">🏠 <span>Overview</span></a>
+  <a href="drift.html" class="nav">📊 <span>Deep Analytics</span></a>
+  <a href="explainability.html" class="nav">🔍 <span>Explainability</span></a>
+  <a href="blackbox.html" class="nav active">📜 <span>Black Box</span></a>
+  <a href="supervisor.html" class="nav">⚖️ <span>Governance</span></a>
+</div>
+
+<div class="main">
+  <header class="topbar">
+    <h1>Black Box Audit Log</h1>
+    <button onclick="window.print()" class="upload" style="background: #58a6ff; border: none; font-size: 0.9rem; padding: 8px 16px;">
+        🖨️ Download PDF Report
+    </button>
+  </header>
+
+  <section class="card wide">
+    <table class="event-table" style="width: 100%; border-collapse: collapse;">
+      <thead>
+        <tr style="text-align: left; border-bottom: 1px solid #2a3446;">
+          <th style="padding: 10px;">Time</th>
+          <th style="padding: 10px;">Severity</th>
+          <th style="padding: 10px;">Action</th>
+          <th style="padding: 10px;">Root Cause</th>
+        </tr>
+      </thead>
+      <tbody id="logBody"></tbody>
+    </table>
+  </section>
+</div>
+
+<script src="sidebar.js"></script>
+<script src="blackbox.js"></script>
+</body>
+</html>

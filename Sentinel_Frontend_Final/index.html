@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Drift Sentinel | Command Center</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<div id="sidebar" class="sidebar collapsed">
+  <div class="logo">🛡️</div>
+  <a href="index.html" class="nav active">🏠 <span>Overview</span></a>
+  <a href="drift.html" class="nav">📊 <span>Deep Analytics</span></a>
+  <a href="explainability.html" class="nav">🔍 <span>Explainability</span></a>
+  <a href="blackbox.html" class="nav">📜 <span>Black Box</span></a>
+  <a href="supervisor.html" class="nav">⚖️ <span>Governance</span></a>
+</div>
+
+<div class="main">
+  <header class="topbar">
+    <h1>Drift Sentinel</h1>
+    <span id="global-status" class="status ok">ACTIVE</span>
+  </header>
+
+  <div class="grid">
+    
+    <section class="card wide">
+      <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+        <h2>Live Vision Feed</h2>
+        <div style="display: flex; align-items: center; gap: 15px;">
+             <label style="color: #58a6ff; cursor: pointer; font-weight: 600;">
+                <input type="checkbox" id="source-toggle"> Video File
+            </label>
+            <label id="upload-btn-container" class="upload hidden">
+                📂 Upload <input type="file" id="video-upload" accept="video/*" hidden>
+            </label>
+        </div>
+      </div>
+
+      <div class="video-wrapper"> 
+        <video id="main-video" autoplay loop muted playsinline></video>
+        <div id="lockdown-overlay" class="lockdown hidden">
+             <div class="lockdown-text">⛔ SYSTEM LOCKDOWN</div>
+        </div>
+      </div>
+
+      <div style="margin-top: 15px; padding: 12px; background: #0c1117; border-radius: 6px;">
+        <label style="display: flex; justify-content: space-between; color: #8b949e; margin-bottom: 8px;">
+            <span>⚠️ Drift Simulation (Fog Level)</span>
+            <span id="quality-val" style="color: #3b82f6;">100%</span>
+        </label>
+        <input type="range" id="quality-slider" min="0" max="100" value="100" style="width: 100%;">
+      </div>
+    </section>
+
+<section class="card">
+      <h2>System Health</h2>
+      
+      <div style="display: flex; justify-content: space-between; margin-top: 15px;">
+          <div>
+            <p style="color: #8b949e; font-size: 0.8rem;">Risk Level</p>
+            <h3 id="riskLevel" style="color: #2da44e;">LOW</h3>
+          </div>
+          <div style="text-align: right;">
+            <p style="color: #8b949e; font-size: 0.8rem;">Drift Score</p>
+            <h3 id="driftScore" style="color: #58a6ff;">0.0</h3>
+          </div>
+      </div>
+
+      <div style="margin-top: 20px; height: 120px; width: 100%;">
+        <canvas id="trendChart"></canvas>
+      </div>
+
+      <div style="margin-top: 20px;">
+        <p style="font-size: 0.8rem;">Risk Budget (Fuel)</p>
+        <div class="fuel"><div id="fuelFill"></div></div>
+        <p id="fuelText" style="text-align: right; margin-top: 5px; color: #8b949e; font-size: 0.8rem;">100% Remaining</p>
+      </div>
+
+      <button id="recalibrate-btn" class="btn-super" style="margin-top: 20px; width: 100%; padding: 10px; background: #1f6feb; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">
+        🛠️ Re-Calibrate Baseline
+      </button>
+    </section>
+
+  </div>
+</div>
+
+<script src="sidebar.js"></script>
+<script src="dashboard.js"></script>
+</body>
+</html>

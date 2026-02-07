@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Drift Sentinel | Governance</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<div id="sidebar" class="sidebar collapsed">
+  <div class="logo">🛡️</div>
+  <a href="index.html" class="nav">🏠 <span>Overview</span></a>
+  <a href="drift.html" class="nav">📊 <span>Deep Analytics</span></a>
+  <a href="explainability.html" class="nav">🔍 <span>Explainability</span></a>
+  <a href="blackbox.html" class="nav">📜 <span>Black Box</span></a>
+  <a href="supervisor.html" class="nav active">⚖️ <span>Governance</span></a>
+</div>
+
+<div class="main">
+  <header class="topbar">
+    <h1>Algorithmic Governance & Reliability</h1>
+  </header>
+
+  <div class="grid">
+
+    <section class="card wide">
+      <h2>Risk Calculation Model</h2>
+      <p style="color:#8b949e; margin-bottom:15px; font-size: 0.9rem;">
+        Real-time risk scoring ($R_t$) utilizes a weighted ensemble of vision degradation metrics prioritized for safety.
+      </p>
+      
+      <div style="background:#0f1623; padding:20px; border-radius:6px; font-family:monospace; color:#58a6ff; font-size:1.1rem; border: 1px solid #2a3446;">
+        R(t) = α · Drift(t) + β · (1 - Confidence(t)) + γ · Persistence(t)
+      </div>
+
+      <div style="display: flex; gap: 40px; margin-top: 15px; color: #e6edf3; font-size: 0.9rem;">
+        <div><b>α (0.6):</b> Visual Drift Variance</div>
+        <div><b>β (0.3):</b> Model Entropy</div>
+        <div><b>γ (0.1):</b> Temporal Persistence</div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>System Reliability Curve</h2>
+      <div style="height: 200px;">
+        <canvas id="reliabilityChart"></canvas>
+      </div>
+      <p style="text-align:center; font-size:0.8rem; color:#8b949e; margin-top:5px;">Probability of Safe Operation ($P_{safe}$)</p>
+    </section>
+
+    <section class="card wide">
+      <h2>Input Distribution Shift (KS-Test Visualization)</h2>
+      <div style="height: 250px;">
+        <canvas id="distChart"></canvas>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Compliance Thresholds</h2>
+      <div style="margin-top:15px;">
+        <div style="display:flex; justify-content:space-between; border-bottom:1px solid #2a3446; padding:10px 0;">
+            <span>🟢 Nominal</span>
+            <span style="color:#2da44e;">R(t) < 30</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; border-bottom:1px solid #2a3446; padding:10px 0;">
+            <span>🟡 Warning</span>
+            <span style="color:#d29922;">30 ≤ R(t) < 60</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; padding:10px 0;">
+            <span>🔴 Lockdown</span>
+            <span style="color:#cf222e;">R(t) ≥ 60</span>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<script src="sidebar.js"></script>
+<script src="supervisor.js"></script>
+</body>
+</html>
