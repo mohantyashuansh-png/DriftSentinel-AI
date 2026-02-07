@@ -11,32 +11,37 @@ class DriftSimulator:
         self.risk_budget = 100.0
         self.risk_level = "LOW"
         self.persistence_counter = 0
+        
+        # --- ADAPTIVE BASELINES ---
+        # Instead of hard numbers (110, 40), we compare against these.
+        # When you calibrate, we update these to match the current environment.
+        self.baseline_brightness_threshold = 110.0 
+        self.baseline_blur_threshold = 40.0
 
-    def update(self, quality_flag: float, blur: float, brightness: float, contrast: float):
-        # 1. Slider Risk
+    def update(self, quality_flag: float, real_blur_score: float, brightness: float):
+        # 1. Slider Risk (Simulation)
         simulated_risk = (1.0 - quality_flag) * 100.0
 
-        # 2. Real Video Risk
+        # 2. Real Video Risk (Reality) - Now ADAPTIVE
         real_risk = 0.0
         
-        # --- THE FIX: CONTRAST DETECTION ---
-        # A normal room has contrast > 40.
-        # A covered lens (even with red noise) is "flat", usually contrast < 20.
-        if contrast < 20: 
-            real_risk = 100.0
+        # LOGIC: Only trigger if it is WORSE than the calibrated baseline
+        # If baseline is 20 (Dark), and current is 20, Risk = 0.
         
-        # Fallback: Absolute Darkness
-        elif brightness < 50:
-            real_risk = 100.0
+        if brightness < self.baseline_brightness_threshold: 
+            # Risk scales based on how much darker it is than the baseline
+            diff = self.baseline_brightness_threshold - brightness
+            real_risk = diff * 1.5 
+        
+        if real_blur_score < self.baseline_blur_threshold:
+            diff = self.baseline_blur_threshold - real_blur_score
+            real_risk = max(real_risk, diff * 2) 
             
-        # Fallback: Extreme Blur (only if bright enough to see)
-        elif blur < 15 and brightness > 50:
-             real_risk = (30 - blur) * 3
-
-        # 3. Hybrid Logic
+        # 3. Take the Worst Case
         target_drift = max(simulated_risk, real_risk)
         
-        self.drift_score += (target_drift - self.drift_score) * 0.4 # Faster reaction
+        # Smoothing
+        self.drift_score += (target_drift - self.drift_score) * 0.5
         
         # Thresholds
         if self.drift_score > 60:
@@ -54,11 +59,22 @@ class DriftSimulator:
 
         self.risk_budget = max(0.0, min(100.0, self.risk_budget))
         
-    def calibrate(self):
+    def calibrate(self, current_blur, current_bright):
+        """
+        The Magic Fix: Learn the NEW Normal.
+        """
         self.risk_budget = 100.0
         self.drift_score = 0.0
         self.risk_level = "LOW"
         self.persistence_counter = 0
+        
+        # If it's dark/blurry right now, accept it as the new baseline!
+        # We lower the thresholds so the current state is considered "Safe".
+        # We subtract a small buffer (e.g. -10) so it doesn't trigger immediately.
+        self.baseline_brightness_threshold = max(10, current_bright - 10)
+        self.baseline_blur_threshold = max(10, current_blur - 10)
+        
+        print(f"✅ CALIBRATED! New Baselines -> Brightness: {self.baseline_brightness_threshold:.1f} | Blur: {self.baseline_blur_threshold:.1f}")
 
 app = FastAPI()
 
@@ -72,42 +88,48 @@ app.add_middleware(
 
 simulator = DriftSimulator()
 
+# Global variables to store latest frame stats for calibration
+latest_blur = 100.0
+latest_bright = 150.0
+
 @app.get("/")
 def home():
-    return {"message": "Sentinel AI Contrast Monitor Online"}
+    return {"message": "Sentinel AI Adaptive Monitor Online"}
 
 @app.post("/process-frame")
 async def process_frame(file: UploadFile = File(...), quality_flag: float = 1.0):
-    # 1. READ
-    contents = await file.read()
-    nparr = np.frombuffer(contents, np.uint8)
-    frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+    global latest_blur, latest_bright
+    try:
+        contents = await file.read()
+        nparr = np.frombuffer(contents, np.uint8)
+        frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
-    # 2. PROCESS (Small Scale)
-    frame_small = cv2.resize(frame, (320, 240))
-    gray = cv2.cvtColor(frame_small, cv2.COLOR_BGR2GRAY)
+        if frame is None: return {"status": "error"}
 
-    # 3. METRICS
-    # A. Brightness (Mean)
-    mean_brightness = np.mean(gray)
-    
-    # B. Contrast (Standard Deviation) -> THIS KILLS THE NOISE ISSUE
-    contrast = np.std(gray)
-    
-    # C. Blur (Laplacian)
-    blur_score = cv2.Laplacian(gray, cv2.CV_64F).var()
+        frame_small = cv2.resize(frame, (320, 240))
+        gray = cv2.cvtColor(frame_small, cv2.COLOR_BGR2GRAY)
 
-    # PRINT DEBUG (Watch your terminal to calibrate!)
-    print(f"👁️  Bright: {mean_brightness:.1f} | Contrast: {contrast:.1f} | Sharp: {blur_score:.1f}")
+        mean_brightness = np.mean(gray)
+        gray_clean = cv2.GaussianBlur(gray, (5, 5), 0)
+        blur_score = cv2.Laplacian(gray_clean, cv2.CV_64F).var()
 
-    # 4. UPDATE
-    simulator.update(quality_flag, blur_score, mean_brightness, contrast)
-    
-    return {
-        "status": "processed",
-        "current_drift": simulator.drift_score,
-        "risk": simulator.risk_level
-    }
+        # Update globals so calibrate() can use them
+        latest_blur = blur_score
+        latest_bright = mean_brightness
+
+        # DEBUG PRINT
+        print(f"👀 CAM: B={mean_brightness:.0f} (Base {simulator.baseline_brightness_threshold:.0f}) | S={blur_score:.0f} (Base {simulator.baseline_blur_threshold:.0f}) | Risk={simulator.drift_score:.0f}")
+
+        simulator.update(quality_flag, blur_score, mean_brightness)
+        
+        return {
+            "status": "processed",
+            "current_drift": simulator.drift_score,
+            "risk": simulator.risk_level
+        }
+    except Exception as e:
+        print(f"Error: {e}")
+        return {"status": "error"}
 
 @app.get("/status")
 async def get_status():
@@ -134,6 +156,7 @@ async def get_explainability():
             "operator_message": "System operating within normal parameters.",
             "all_feature_scores": {"Helmet": 0.02, "Vest": 0.01, "Blur": 0.05}
         }
+    
     return {
         "top_driving_feature": "Visual_Degradation (Real-Time)",
         "operator_message": "CRITICAL: Sensor Obstruction or Environmental Blur Detected.",
@@ -147,19 +170,36 @@ async def get_explainability():
 
 @app.post("/calibrate")
 async def calibrate():
-    simulator.calibrate()
+    # Use the LATEST known values to set the new baseline
+    simulator.calibrate(latest_blur, latest_bright)
     return {"message": "Baseline Recalibrated"}
 
 @app.get("/logs")
 async def get_logs():
     logs = []
     now = datetime.datetime.now().strftime("%H:%M:%S")
+    
     if simulator.drift_score > 60:
-        logs.append({"timestamp": now, "severity": "CRITICAL", "action_taken": "Lockdown", "root_cause": "Visual Drift Threshold Exceeded"})
+        logs.append({
+            "timestamp": now,
+            "severity": "CRITICAL",
+            "action_taken": "Lockdown Initiated",
+            "root_cause": "Visual Drift Threshold Exceeded"
+        })
     elif simulator.drift_score > 30:
-        logs.append({"timestamp": now, "severity": "WARNING", "action_taken": "Alert Sent", "root_cause": "Minor Distribution Shift"})
+        logs.append({
+            "timestamp": now,
+            "severity": "WARNING",
+            "action_taken": "Alert Sent to Supervisor",
+            "root_cause": "Minor Distribution Shift"
+        })
     else:
-         logs.append({"timestamp": now, "severity": "INFO", "action_taken": "Routine Check", "root_cause": "System Nominal"})
+         logs.append({
+            "timestamp": now,
+            "severity": "INFO",
+            "action_taken": "Routine Check",
+            "root_cause": "System Nominal"
+        })
     return {"logs": logs}
 
 if __name__ == "__main__":
